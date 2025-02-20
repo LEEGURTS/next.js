@@ -169,31 +169,8 @@ describe.each([
       const source = next.normalizeTestDirContent(
         await getRedboxSource(browser)
       )
-      if (basePath === '' && !process.env.TURBOPACK) {
-        expect(source).toMatchInlineSnapshot(`
-          "./pages/hmr/about2.js
-          Error:   x Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?
-             ,-[7:1]
-           4 |       <p>This is the about page.</p>
-           5 |     div
-           6 |   )
-           7 | }
-             : ^
-             \`----
-            x Unexpected eof
-             ,-[7:3]
-           5 |     div
-           6 |   )
-           7 | }
-             \`----
 
-          Caused by:
-              Syntax Error
-
-          Import trace for requested module:
-          ./pages/hmr/about2.js"
-        `)
-      } else if (basePath === '' && process.env.TURBOPACK) {
+      if (basePath === '' && process.env.TURBOPACK) {
         expect(source).toMatchInlineSnapshot(`
          "./pages/hmr/about2.js (7:1)
          Parsing ecmascript source code failed
@@ -205,7 +182,34 @@ describe.each([
 
          Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?"
         `)
-      } else if (basePath === '/docs' && !process.env.TURBOPACK) {
+      } else if (basePath === '' && process.env.NEXT_RSPACK) {
+        expect(source).toMatchInlineSnapshot(`
+         "./pages/hmr/about2.js
+           × Module build failed:
+           ├─▶   ×
+           │     │   x Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?
+           │     │    ,-[TEST_DIR/pages/hmr/about2.js:7:1]
+           │     │  4 |       <p>This is the about page.</p>
+           │     │  5 |     div
+           │     │  6 |   )
+           │     │  7 | }
+           │     │    : ^
+           │     │    \`----
+           │     │
+           │     │   x Unexpected eof
+           │     │    ,-[TEST_DIR/pages/hmr/about2.js:7:3]
+           │     │  5 |     div
+           │     │  6 |   )
+           │     │  7 | }
+           │     │    \`----
+           │     │
+           │
+           ╰─▶ Syntax Error
+
+         Import trace for requested module:
+         ./pages/hmr/about2.js"
+        `)
+      } else if (basePath === '') {
         expect(source).toMatchInlineSnapshot(`
           "./pages/hmr/about2.js
           Error:   x Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?
@@ -241,15 +245,66 @@ describe.each([
 
             Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?"
           `)
+      } else if (basePath === '/docs' && process.env.NEXT_RSPACK) {
+        expect(source).toMatchInlineSnapshot(`
+         "./pages/hmr/about2.js
+           × Module build failed:
+           ├─▶   ×
+           │     │   x Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?
+           │     │    ,-[TEST_DIR/pages/hmr/about2.js:7:1]
+           │     │  4 |       <p>This is the about page.</p>
+           │     │  5 |     div
+           │     │  6 |   )
+           │     │  7 | }
+           │     │    : ^
+           │     │    \`----
+           │     │
+           │     │   x Unexpected eof
+           │     │    ,-[TEST_DIR/pages/hmr/about2.js:7:3]
+           │     │  5 |     div
+           │     │  6 |   )
+           │     │  7 | }
+           │     │    \`----
+           │     │
+           │
+           ╰─▶ Syntax Error
+
+         Import trace for requested module:
+         ./pages/hmr/about2.js"
+        `)
+      } else if (basePath === '/docs') {
+        expect(source).toMatchInlineSnapshot(`
+          "./pages/hmr/about2.js
+          Error:   x Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?
+             ,-[7:1]
+           4 |       <p>This is the about page.</p>
+           5 |     div
+           6 |   )
+           7 | }
+             : ^
+             \`----
+            x Unexpected eof
+             ,-[7:3]
+           5 |     div
+           6 |   )
+           7 | }
+             \`----
+
+          Caused by:
+              Syntax Error
+
+          Import trace for requested module:
+          ./pages/hmr/about2.js"
+        `)
+
+        await next.patchFile(aboutPage, aboutContent)
+
+        await retry(async () => {
+          expect(await getBrowserBodyText(browser)).toMatch(
+            /This is the about page/
+          )
+        })
       }
-
-      await next.patchFile(aboutPage, aboutContent)
-
-      await retry(async () => {
-        expect(await getBrowserBodyText(browser)).toMatch(
-          /This is the about page/
-        )
-      })
     })
 
     if (!process.env.TURBOPACK) {
@@ -529,6 +584,8 @@ describe.each([
 
               Read more: https://nextjs.org/docs/app/api-reference/next-config-js/turbo#webpack-loaders"
             `)
+        } else if (process.env.NEXT_RSPACK) {
+          expect(await getRedboxSource(browser)).toMatchInlineSnapshot()
         } else {
           expect(await getRedboxSource(browser)).toMatchInlineSnapshot(`
                       "./components/parse-error.xyz

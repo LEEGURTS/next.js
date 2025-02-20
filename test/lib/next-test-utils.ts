@@ -1039,10 +1039,15 @@ export function getRedboxSource(
         )
       )
     const root = portal.shadowRoot
-    return (
+    const innerText =
       root.querySelector('[data-nextjs-codeframe], [data-nextjs-terminal]')
         ?.innerText ?? null
-    )
+
+    // Remove any trailing whitespace
+    return innerText
+      .split('\n')
+      .map((line) => line.trimRight())
+      .join('\n')
   })
 }
 
