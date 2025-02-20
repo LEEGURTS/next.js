@@ -1039,15 +1039,10 @@ export function getRedboxSource(
         )
       )
     const root = portal.shadowRoot
-    const innerText =
+    return (
       root.querySelector('[data-nextjs-codeframe], [data-nextjs-terminal]')
         ?.innerText ?? null
-
-    // Remove any trailing whitespace
-    return innerText
-      .split('\n')
-      .map((line) => line.trimRight())
-      .join('\n')
+    )
   })
 }
 
@@ -1744,4 +1739,11 @@ export async function getHighlightedDiffLines(
       (await line.innerText())[0],
     ])
   )
+}
+
+export function trimEndMultiline(str: string) {
+  return str
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n')
 }

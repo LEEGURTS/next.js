@@ -10,6 +10,7 @@ import {
   renderViaHTTP,
   retry,
   waitFor,
+  trimEndMultiline,
 } from 'next-test-utils'
 import { nextTestSetup } from 'e2e-utils'
 import { outdent } from 'outdent'
@@ -183,7 +184,7 @@ describe.each([
          Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?"
         `)
       } else if (basePath === '' && process.env.NEXT_RSPACK) {
-        expect(source).toMatchInlineSnapshot(`
+        expect(trimEndMultiline(source)).toMatchInlineSnapshot(`
          "./pages/hmr/about2.js
            × Module build failed:
            ├─▶   ×
@@ -246,7 +247,7 @@ describe.each([
             Unexpected token. Did you mean \`{'}'}\` or \`&rbrace;\`?"
           `)
       } else if (basePath === '/docs' && process.env.NEXT_RSPACK) {
-        expect(source).toMatchInlineSnapshot(`
+        expect(trimEndMultiline(source)).toMatchInlineSnapshot(`
          "./pages/hmr/about2.js
            × Module build failed:
            ├─▶   ×
@@ -585,7 +586,8 @@ describe.each([
               Read more: https://nextjs.org/docs/app/api-reference/next-config-js/turbo#webpack-loaders"
             `)
         } else if (process.env.NEXT_RSPACK) {
-          expect(await getRedboxSource(browser)).toMatchInlineSnapshot(`
+          expect(trimEndMultiline(await getRedboxSource(browser)))
+            .toMatchInlineSnapshot(`
            "./components/parse-error.xyz
              × Module parse failed:
              ╰─▶   × JavaScript parsing error: Expression expected
@@ -680,6 +682,29 @@ describe.each([
              5 | js
 
            Expression expected"
+          `)
+        } else if (process.env.NEXT_RSPACK) {
+          expect(trimEndMultiline(next.normalizeTestDirContent(redboxSource)))
+            .toMatchInlineSnapshot(`
+           "./components/parse-error.js
+             × Module build failed:
+             ├─▶   ×
+             │     │   x Expression expected
+             │     │    ,-[./components/parse-error.js:3:1]
+             │     │  1 | This
+             │     │  2 | is
+             │     │  3 | }}}
+             │     │    : ^
+             │     │  4 | invalid
+             │     │  5 | js
+             │     │    \`----
+             │     │
+             │
+             ╰─▶ Syntax Error
+
+           Import trace for requested module:
+           ./components/parse-error.js
+           ./pages/hmr/about9.js"
           `)
         } else {
           redboxSource = redboxSource.substring(
