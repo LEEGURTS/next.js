@@ -585,7 +585,26 @@ describe.each([
               Read more: https://nextjs.org/docs/app/api-reference/next-config-js/turbo#webpack-loaders"
             `)
         } else if (process.env.NEXT_RSPACK) {
-          expect(await getRedboxSource(browser)).toMatchInlineSnapshot()
+          expect(await getRedboxSource(browser)).toMatchInlineSnapshot(`
+           "./components/parse-error.xyz
+             × Module parse failed:
+             ╰─▶   × JavaScript parsing error: Expression expected
+                    ╭─[3:0]
+                  1 │ This
+                  2 │ is
+                  3 │ }}}
+                    · ─
+                  4 │ invalid
+                  5 │ js
+                    ╰────
+
+             help:
+                   You may need an appropriate loader to handle this file type.
+
+           Import trace for requested module:
+           ./components/parse-error.xyz
+           ./pages/hmr/about8.js"
+          `)
         } else {
           expect(await getRedboxSource(browser)).toMatchInlineSnapshot(`
                       "./components/parse-error.xyz
