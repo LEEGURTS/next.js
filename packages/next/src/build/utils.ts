@@ -82,6 +82,7 @@ import { buildAppStaticPaths } from './static-paths/app'
 import { buildPagesStaticPaths } from './static-paths/pages'
 import type { PrerenderedRoute } from './static-paths/types'
 import type { CacheControl } from '../server/lib/cache-control'
+import { formatCacheControl } from './output/format'
 
 export type ROUTER_TYPE = 'pages' | 'app'
 
@@ -437,7 +438,7 @@ export async function printTreeView(
   // Collect all the symbols we use so we can print the icons out.
   const usedSymbols = new Set()
 
-  const messages: [string, string, string][] = []
+  const messages: [string, string, string, string][] = []
 
   const stats = await computeFromManifest(
     { build: buildManifest, app: appBuildManifest },
@@ -463,7 +464,8 @@ export async function printTreeView(
         routerType === 'app' ? 'Route (app)' : 'Route (pages)',
         'Size',
         'First Load JS',
-      ].map((entry) => underline(entry)) as [string, string, string]
+        'Cache Life',
+      ].map((entry) => underline(entry)) as [string, string, string, string]
     )
 
     filteredPages.forEach((item, i, arr) => {
@@ -512,16 +514,8 @@ export async function printTreeView(
 
       usedSymbols.add(symbol)
 
-      // TODO: Rework this to be usable for app router routes.
-      // See https://vercel.slack.com/archives/C02CDC2ALJH/p1739552318644119?thread_ts=1739550179.439319&cid=C02CDC2ALJH
-      if (pageInfo?.initialCacheControl?.revalidate) usedSymbols.add('ISR')
-
       messages.push([
-        `${border} ${symbol} ${
-          pageInfo?.initialCacheControl?.revalidate
-            ? `${item} (ISR: ${pageInfo?.initialCacheControl.revalidate} Seconds)`
-            : item
-        }${
+        `${border} ${symbol} ${item}${
           totalDuration > MIN_DURATION
             ? ` (${getPrettyDuration(totalDuration)})`
             : ''
@@ -539,6 +533,9 @@ export async function printTreeView(
             : pageInfo.size >= 0
               ? getPrettySize(pageInfo.totalSize)
               : ''
+          : '',
+        pageInfo?.initialCacheControl
+          ? formatCacheControl(pageInfo.initialCacheControl)
           : '',
       ])
 
@@ -558,6 +555,7 @@ export async function printTreeView(
           messages.push([
             `${contSymbol}   ${innerSymbol} ${getCleanName(file)}`,
             typeof size === 'number' ? prettyBytes(size) : '',
+            '',
             '',
           ])
         })
@@ -603,6 +601,7 @@ export async function printTreeView(
           const previewPages = totalRoutes === 4 ? 4 : Math.min(totalRoutes, 3)
           routes = pageInfo.ssgPageRoutes
             .slice(0, previewPages)
+            // TODO: Should have individual cache controls.
             .map((route) => ({ route, duration: 0 }))
           if (totalRoutes > previewPages) {
             const remaining = totalRoutes - previewPages
@@ -625,6 +624,9 @@ export async function printTreeView(
               }`,
               '',
               '',
+              pageInfo?.initialCacheControl
+                ? formatCacheControl(pageInfo.initialCacheControl)
+                : '',
             ])
           }
         )
@@ -637,6 +639,7 @@ export async function printTreeView(
     messages.push([
       '+ First Load JS shared by all',
       typeof sharedFilesSize === 'number' ? getPrettySize(sharedFilesSize) : '',
+      '',
       '',
     ])
     const sharedCssFiles: string[] = []
@@ -671,13 +674,19 @@ export async function printTreeView(
         return
       }
 
-      messages.push([`  ${innerSymbol} ${cleanName}`, prettyBytes(size), ''])
+      messages.push([
+        `  ${innerSymbol} ${cleanName}`,
+        prettyBytes(size),
+        '',
+        '',
+      ])
     })
 
     if (restChunkCount > 0) {
       messages.push([
         `  └ other shared chunks (total)`,
         prettyBytes(restChunkSize),
+        '',
         '',
       ])
     }
@@ -690,7 +699,7 @@ export async function printTreeView(
       list: lists.app,
     })
 
-    messages.push(['', '', ''])
+    messages.push(['', '', '', ''])
   }
 
   pageInfos.set('/404', {
@@ -720,13 +729,13 @@ export async function printTreeView(
         .map(gzipSize ? fsStatGzip : fsStat)
     )
 
-    messages.push(['', '', ''])
-    messages.push(['ƒ Middleware', getPrettySize(sum(middlewareSizes)), ''])
+    messages.push(['', '', '', ''])
+    messages.push(['ƒ Middleware', getPrettySize(sum(middlewareSizes)), '', ''])
   }
 
   print(
     textTable(messages, {
-      align: ['l', 'l', 'r'],
+      align: ['l', 'r', 'r', 'r'],
       stringLength: (str) => stripAnsi(str).length,
     })
   )
@@ -747,19 +756,13 @@ export async function printTreeView(
           '(SSG)',
           `prerendered as static HTML (uses ${cyan(staticFunctionInfo)})`,
         ],
-        usedSymbols.has('ISR') && [
-          '',
-          '(ISR)',
-          `incremental static regeneration (uses revalidate in ${cyan(
-            staticFunctionInfo
-          )})`,
-        ],
         usedSymbols.has('◐') && [
           '◐',
           '(Partial Prerender)',
           'prerendered as static HTML with dynamic server-streamed content',
         ],
         usedSymbols.has('ƒ') && ['ƒ', '(Dynamic)', `server-rendered on demand`],
+        ['', '(Cache Life)', 'revalidate / expire'],
       ].filter((x) => x) as [string, string, string][],
       {
         align: ['l', 'l', 'l'],

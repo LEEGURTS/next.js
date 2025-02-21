@@ -11,34 +11,31 @@ describe('cli-build-output', () => {
     beforeAll(() => next.build())
 
     it('should show info about prerendered and dynamic routes in a tree view', async () => {
-      // TODO: Show cache info (revalidate/expire) for app router, and use the
-      // same for pages router instead of the ISR addendum.
-
       // TODO: Fix double-listing of the /ppr/[slug] fallback.
 
       expect(getTreeView(next.cliOutput)).toMatchInlineSnapshot(`
-       "Route (app)                               Size     First Load JS
-       ┌ ○ /_not-found                           ·····           ······
-       ├ ƒ /api                                  ·····           ······
-       ├ ○ /api/force-static                     ·····           ······
-       ├ ○ /app-static                           ·····           ······
-       ├ ○ /cache-life                           ·····           ······
-       ├ ƒ /dynamic                              ·····           ······
-       ├ ◐ /ppr/[slug]                           ·····           ······
-       ├   ├ /ppr/[slug]
-       ├   ├ /ppr/[slug]
-       ├   ├ /ppr/days
-       ├   └ /ppr/weeks
-       └ ○ /revalidate                           ·····           ······
-       + First Load JS shared by all             ······
-         ├ chunks/main-app-················.js   ······
+       "Route (app)                                  Size  First Load JS    Cache Life
+       ┌ ○ /_not-found                             ·····         ······
+       ├ ƒ /api                                    ·····         ······
+       ├ ○ /api/force-static                       ·····         ······
+       ├ ○ /app-static                             ·····         ······
+       ├ ○ /cache-life                             ·····         ······    1 w / 30 d
+       ├ ƒ /dynamic                                ·····         ······
+       ├ ◐ /ppr/[slug]                             ·····         ······    1 w / 30 d
+       ├   ├ /ppr/[slug]                                                   1 w / 30 d
+       ├   ├ /ppr/[slug]                                                   1 w / 30 d
+       ├   ├ /ppr/days                                                     1 w / 30 d
+       ├   └ /ppr/weeks                                                    1 w / 30 d
+       └ ○ /revalidate                             ·····         ······  15 min / 1 y
+       + First Load JS shared by all              ······
+         ├ chunks/main-app-················.js    ······
          └ other shared chunks (total)           ·······
 
-       Route (pages)                             Size     First Load JS
-       ┌ ƒ /api/hello                            ···            ·······
-       ├ ● /gsp-revalidate (ISR: 300 Seconds)    ·····          ·······
-       ├ ƒ /gssp                                 ·····          ·······
-       └ ○ /static                               ·····          ·······
+       Route (pages)                                Size  First Load JS    Cache Life
+       ┌ ƒ /api/hello                                ···        ·······
+       ├ ● /gsp-revalidate (683 ms)                ·····        ·······   5 min / 1 y
+       ├ ƒ /gssp                                   ·····        ·······
+       └ ○ /static (684 ms)                        ·····        ·······
        + First Load JS shared by all             ·······
          ├ chunks/framework-················.js  ·······
          ├ chunks/main-················.js       ·······
@@ -46,9 +43,9 @@ describe('cli-build-output', () => {
 
        ○  (Static)             prerendered as static content
        ●  (SSG)                prerendered as static HTML (uses generateStaticParams)
-          (ISR)                incremental static regeneration (uses revalidate in generateStaticParams)
        ◐  (Partial Prerender)  prerendered as static HTML with dynamic server-streamed content
-       ƒ  (Dynamic)            server-rendered on demand"
+       ƒ  (Dynamic)            server-rendered on demand
+          (Cache Life)         revalidate / expire"
       `)
     })
   })
@@ -63,21 +60,22 @@ describe('cli-build-output', () => {
 
     it('should show info about prerendered routes in a compact tree view', async () => {
       expect(getTreeView(next.cliOutput)).toMatchInlineSnapshot(`
-       "Route (app)                               Size     First Load JS
-       ┌ ○ /                                     ·····           ······
-       └ ○ /_not-found                           ·····           ······
-       + First Load JS shared by all             ······
-         ├ chunks/main-app-················.js   ······
+       "Route (app)                                  Size  First Load JS  Cache Life
+       ┌ ○ /                                       ·····         ······
+       └ ○ /_not-found                             ·····         ······
+       + First Load JS shared by all              ······
+         ├ chunks/main-app-················.js    ······
          └ other shared chunks (total)           ·······
 
-       Route (pages)                             Size     First Load JS
-       ─ ○ /static                               ·····          ·······
+       Route (pages)                                Size  First Load JS  Cache Life
+       ─ ○ /static (634 ms)                        ·····        ·······
        + First Load JS shared by all             ·······
          ├ chunks/framework-················.js  ·······
          ├ chunks/main-················.js       ·······
          └ other shared chunks (total)           ·······
 
-       ○  (Static)  prerendered as static content"
+       ○  (Static)      prerendered as static content
+          (Cache Life)  revalidate / expire"
       `)
     })
   })
