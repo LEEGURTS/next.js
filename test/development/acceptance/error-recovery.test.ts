@@ -409,11 +409,9 @@ describe.each(['default', 'turbo'])('ReactRefreshLogBox %s', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000))
     await session.assertHasRedbox()
-    if (process.platform === 'win32') {
-      expect(await session.getRedboxSource()).toMatchSnapshot()
-    } else {
-      expect(await session.getRedboxSource()).toMatchSnapshot()
-    }
+    expect(await session.getRedboxSource()).toMatchSnapshot(
+      `isWin32-${process.platform === 'win32'}--isRspack-${Boolean(process.env.NEXT_RSPACK)}`
+    )
 
     // Make a syntax error.
     await session.patch(
@@ -445,6 +443,27 @@ describe.each(['default', 'turbo'])('ReactRefreshLogBox %s', () => {
            |                                         ^
 
        Expected '}', got '<eof>'"
+      `)
+    } else if (process.env.NEXT_RSPACK) {
+      expect(redboxSource).toMatchInlineSnapshot(`
+       "./index.js
+         × Module build failed:
+         ├─▶   ×
+         │     │   x Expected '}', got '<eof>'
+         │     │    ,-[TEST_DIR/index.js:7:1]
+         │     │  4 |   i++
+         │     │  5 |   throw Error('no ' + i)
+         │     │  6 | }, 1000)
+         │     │  7 | export default function FunctionNamed() {
+         │     │    :                                         ^
+         │     │    \`----
+         │     │
+         │
+         ╰─▶ Syntax Error
+
+       Import trace for requested module:
+       ./index.js
+       ./pages/index.js"
       `)
     } else {
       expect(redboxSource).toMatchInlineSnapshot(`
@@ -482,6 +501,27 @@ describe.each(['default', 'turbo'])('ReactRefreshLogBox %s', () => {
            |                                         ^
 
        Expected '}', got '<eof>'"
+      `)
+    } else if (process.env.NEXT_RSPACK) {
+      expect(redboxSource).toMatchInlineSnapshot(`
+       "./index.js
+         × Module build failed:
+         ├─▶   ×
+         │     │   x Expected '}', got '<eof>'
+         │     │    ,-[TEST_DIR/index.js:7:1]
+         │     │  4 |   i++
+         │     │  5 |   throw Error('no ' + i)
+         │     │  6 | }, 1000)
+         │     │  7 | export default function FunctionNamed() {
+         │     │    :                                         ^
+         │     │    \`----
+         │     │
+         │
+         ╰─▶ Syntax Error
+
+       Import trace for requested module:
+       ./index.js
+       ./pages/index.js"
       `)
     } else {
       expect(redboxSource).toMatchInlineSnapshot(`
