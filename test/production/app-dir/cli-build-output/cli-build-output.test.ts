@@ -13,6 +13,7 @@ describe('cli-build-output', () => {
 
     it('should show info about prerendered and dynamic routes in a tree view', async () => {
       // TODO: Fix double-listing of the /ppr/[slug] fallback.
+      // TODO: Use individual cache life values for prerendered dynamic routes.
 
       expect(getTreeView(next.cliOutput)).toMatchInlineSnapshot(`
        "Route (app)                                  Size  First Load JS    Cache Life
