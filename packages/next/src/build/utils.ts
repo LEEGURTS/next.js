@@ -440,6 +440,8 @@ export async function printTreeView(
 
   const messages: [string, string, string, string][] = []
 
+  let showCacheLife = false
+
   const stats = await computeFromManifest(
     { build: buildManifest, app: appBuildManifest },
     distPath,
@@ -459,12 +461,16 @@ export async function printTreeView(
       return
     }
 
+    showCacheLife = filteredPages.some(
+      (page) => pageInfos.get(page)?.initialCacheControl?.revalidate
+    )
+
     messages.push(
       [
         routerType === 'app' ? 'Route (app)' : 'Route (pages)',
         'Size',
         'First Load JS',
-        'Cache Life',
+        showCacheLife ? 'Cache Life' : '',
       ].map((entry) => underline(entry)) as [string, string, string, string]
     )
 
@@ -534,7 +540,7 @@ export async function printTreeView(
               ? getPrettySize(pageInfo.totalSize)
               : ''
           : '',
-        pageInfo?.initialCacheControl
+        showCacheLife && pageInfo?.initialCacheControl
           ? formatCacheControl(pageInfo.initialCacheControl)
           : '',
       ])
@@ -624,7 +630,7 @@ export async function printTreeView(
               }`,
               '',
               '',
-              pageInfo?.initialCacheControl
+              showCacheLife && pageInfo?.initialCacheControl
                 ? formatCacheControl(pageInfo.initialCacheControl)
                 : '',
             ])
@@ -762,7 +768,7 @@ export async function printTreeView(
           'prerendered as static HTML with dynamic server-streamed content',
         ],
         usedSymbols.has('ƒ') && ['ƒ', '(Dynamic)', `server-rendered on demand`],
-        ['', '(Cache Life)', 'revalidate / expire'],
+        showCacheLife && ['', '(Cache Life)', 'revalidate / expire'],
       ].filter((x) => x) as [string, string, string][],
       {
         align: ['l', 'l', 'l'],

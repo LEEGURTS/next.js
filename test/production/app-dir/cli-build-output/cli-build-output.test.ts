@@ -33,9 +33,9 @@ describe('cli-build-output', () => {
 
        Route (pages)                                Size  First Load JS    Cache Life
        ┌ ƒ /api/hello                                ···        ·······
-       ├ ● /gsp-revalidate (683 ms)                ·····        ·······   5 min / 1 y
+       ├ ● /gsp-revalidate (462 ms)                ·····        ·······   5 min / 1 y
        ├ ƒ /gssp                                   ·····        ·······
-       └ ○ /static (684 ms)                        ·····        ·······
+       └ ○ /static (457 ms)                        ·····        ·······
        + First Load JS shared by all             ·······
          ├ chunks/framework-················.js  ·······
          ├ chunks/main-················.js       ·······
@@ -60,22 +60,21 @@ describe('cli-build-output', () => {
 
     it('should show info about prerendered routes in a compact tree view', async () => {
       expect(getTreeView(next.cliOutput)).toMatchInlineSnapshot(`
-       "Route (app)                                  Size  First Load JS  Cache Life
+       "Route (app)                                  Size  First Load JS
        ┌ ○ /                                       ·····         ······
        └ ○ /_not-found                             ·····         ······
        + First Load JS shared by all              ······
          ├ chunks/main-app-················.js    ······
          └ other shared chunks (total)           ·······
 
-       Route (pages)                                Size  First Load JS  Cache Life
-       ─ ○ /static (634 ms)                        ·····        ·······
+       Route (pages)                                Size  First Load JS
+       ─ ○ /static (381 ms)                        ·····        ·······
        + First Load JS shared by all             ·······
          ├ chunks/framework-················.js  ·······
          ├ chunks/main-················.js       ·······
          └ other shared chunks (total)           ·······
 
-       ○  (Static)      prerendered as static content
-          (Cache Life)  revalidate / expire"
+       ○  (Static)  prerendered as static content"
       `)
     })
   })
