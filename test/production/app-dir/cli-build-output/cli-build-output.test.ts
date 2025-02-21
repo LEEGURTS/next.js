@@ -1,5 +1,6 @@
 import { nextTestSetup } from 'e2e-utils'
 import path from 'path'
+import stripAnsi from 'strip-ansi'
 
 describe('cli-build-output', () => {
   describe('with mixed static and dynamic pages and app router routes', () => {
@@ -33,9 +34,9 @@ describe('cli-build-output', () => {
 
        Route (pages)                                Size  First Load JS    Cache Life
        ┌ ƒ /api/hello                                ···        ·······
-       ├ ● /gsp-revalidate (462 ms)                ·····        ·······   5 min / 1 y
+       ├ ● /gsp-revalidate                         ·····        ·······   5 min / 1 y
        ├ ƒ /gssp                                   ·····        ·······
-       └ ○ /static (457 ms)                        ·····        ·······
+       └ ○ /static                                 ·····        ·······
        + First Load JS shared by all             ·······
          ├ chunks/framework-················.js  ·······
          ├ chunks/main-················.js       ·······
@@ -68,7 +69,7 @@ describe('cli-build-output', () => {
          └ other shared chunks (total)           ·······
 
        Route (pages)                                Size  First Load JS
-       ─ ○ /static (381 ms)                        ·····        ·······
+       ─ ○ /static                                 ·····        ·······
        + First Load JS shared by all             ·······
          ├ chunks/framework-················.js  ·······
          ├ chunks/main-················.js       ·······
@@ -99,6 +100,8 @@ function getTreeView(cliOutput: string): string {
 }
 
 function normalizeCliOutputLine(line: string): string {
+  line = stripAnsi(line)
+
   // Replace file sizes with a placeholder.
   line = line.replace(
     /\b\d+(?:\.\d+)?\s*(B|kB|MB|GB|TB|PB|EB|ZB|YB)\b/g,
@@ -110,6 +113,9 @@ function normalizeCliOutputLine(line: string): string {
     /-([a-f0-9]{8,})(\.js)/g,
     (match, p1, p2) => '-' + '·'.repeat(p1.length) + p2
   )
+
+  // Blank out build times.
+  line = line.replace(/\(\d+ ms\)/g, (match) => ' '.repeat(match.length))
 
   return line
 }
